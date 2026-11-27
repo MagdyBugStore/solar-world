@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Solar World Map</title>
+
+    <link rel="stylesheet"
+    href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            background: #101820;
+            color: white;
+            font-family: Arial;
+        }
+
+        header {
+            text-align: center;
+            padding: 20px;
+        }
+
+        h2 {
+            color: #ffcc00;
+        }
+
+        .info {
+            text-align: center;
+            background: #1c2b36;
+            padding: 20px;
+        }
+
+        .number {
+            font-size: 35px;
+            font-weight: bold;
+            color: #ffcc00;
+            margin: 10px;
+        }
+
+        #map {
+            width: 100%;
+            height: 75vh;
+        }
+    </style>
+</head>
+
+<body>
+
+<header>
+    <h2>☀️ تشغيل العالم بالطاقة الشمسية</h2>
+    <p>تصور بصري للمساحة المطلوبة</p>
+</header>
+
+<div class="info">
+    مساحة الألواح الشمسية
+    <div class="number"><%= area %> كم²</div>
+    الأبعاد التقريبية: <%= dimensions %> كم
+</div>
+
+<div id="map"></div>
+
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+<script>
+    const map = L.map("map").setView([25, 25], 4);
+
+    L.tileLayer(
+        "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
+        {
+            maxZoom: 18,
+            attribution: "&copy; OpenStreetMap"
+        }
+    ).addTo(map);
+
+    const bounds = [
+        [23.62, 23.48],
+        [26.38, 26.52]
+    ];
+
+    const solar = L.rectangle(bounds, {
+        color: "#ffcc00",
+        weight: 3,
+        fillColor: "#ffcc00",
+        fillOpacity: 0.55
+    }).addTo(map);
+
+    solar.bindPopup(`
+        <h3>☀️ الطاقة الشمسية العالمية</h3>
+        <p>93,500 كم² من الألواح الشمسية</p>
+    `);
+
+    solar.openPopup();
+
+    map.fitBounds(bounds);
+
+</script>
+
+</body>
+</html>
