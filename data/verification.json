@@ -1,0 +1,66 @@
+{
+ "checks": {
+  "max_class_area_le_egypt": true,
+  "slope_nesting_3_le_5_le_10": true,
+  "access_nesting_10_le_25_le_all": true,
+  "grid_vs_natural_earth_area_diff_pct": -0.07
+ },
+ "geojson": {
+  "features": 9,
+  "polygons": 462,
+  "bbox": [
+   24.6875,
+   22.0,
+   35.6713,
+   31.6111
+  ],
+  "size_mb": 1.09
+ },
+ "displayed_vs_grid": {
+  "slope<=3, access<=10": {
+   "displayed_polygons_km2": 204772,
+   "grid_km2": 199173,
+   "displayed_vs_grid_pct": 102.8
+  },
+  "slope<=3, access<=25": {
+   "displayed_polygons_km2": 352165,
+   "grid_km2": 347831,
+   "displayed_vs_grid_pct": 101.2
+  },
+  "slope<=3, access<=all": {
+   "displayed_polygons_km2": 603191,
+   "grid_km2": 591806,
+   "displayed_vs_grid_pct": 101.9
+  },
+  "slope<=5, access<=10": {
+   "displayed_polygons_km2": 205549,
+   "grid_km2": 216375,
+   "displayed_vs_grid_pct": 95.0
+  },
+  "slope<=5, access<=25": {
+   "displayed_polygons_km2": 353629,
+   "grid_km2": 378583,
+   "displayed_vs_grid_pct": 93.4
+  },
+  "slope<=5, access<=all": {
+   "displayed_polygons_km2": 604995,
+   "grid_km2": 639369,
+   "displayed_vs_grid_pct": 94.6
+  },
+  "slope<=10, access<=10": {
+   "displayed_polygons_km2": 207108,
+   "grid_km2": 231657,
+   "displayed_vs_grid_pct": 89.4
+  },
+  "slope<=10, access<=25": {
+   "displayed_polygons_km2": 357650,
+   "grid_km2": 406876,
+   "displayed_vs_grid_pct": 87.9
+  },
+  "slope<=10, access<=all": {
+   "displayed_polygons_km2": 613061,
+   "grid_km2": 682994,
+   "displayed_vs_grid_pct": 89.8
+  }
+ }
+}
