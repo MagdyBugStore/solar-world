@@ -1,6 +1,6 @@
 # بلال: بيانات مصر (الأرض الصالحة للألواح الشمسية)
 
-الملفات: `suitable_egypt.geojson` (الشكل المبسّط)، `stats.json` (المساحات من الشبكة)، `verification.json` (نتائج الفحص)، `calibration_roughness.json` (معايرة فلتر الخشونة)، `pvgis_egypt.json` (نقط الإشعاع)، وملفات `*.js` نسخ من نفس البيانات كي يعمل `egypt.html` بفتح الملف مباشرة (`python3 scripts/build_js.py`). البيانات الخام لا تُرفع (`work/` في `.gitignore`).
+الملفات: `suitable_egypt.geojson` (الشكل المبسّط)، `stats.json` (المساحات من الشبكة)، `verification.json` (نتائج الفحص)، `calibration_roughness.json` (معايرة فلتر الخشونة)، `pvgis_egypt.json` (نقط الإشعاع)، وملفات `*.js` نسخ من نفس البيانات كي يعمل `index.html` بفتح الملف مباشرة (`python3 scripts/build_js.py`). البيانات الخام لا تُرفع (`work/` في `.gitignore`).
 
 ## المصادر (حُمّلت يوم 27/11/2026، السكربت `scripts/fetch_data.py`)
 | المصدر | الإصدار / الرابط | الترخيص |
@@ -24,7 +24,7 @@
 ## التحقق (`verification.json`)
 - أكبر فئة أقل من مساحة مصر؛ التداخل صحيح (3° ⊂ 5° ⊂ 10° و10 كم ⊂ 25 كم ⊂ الكل) لكل النسخ التسع.
 - GeoJSON: 9 features و462 polygon، bbox [24.69, 22.00, 35.67, 31.61]، 1.09 MB.
-- `egypt.html`: فحص syntax بـ node ناجح، ولقطة headless بـ http وfile (`docs/egypt_page.png`).
+- `index.html` (كان egypt.html): فحص syntax بـ node ناجح، ولقطة headless بـ http وfile (`docs/egypt_page.png`).
 - الشكل المعروض مقابل الشبكة: لـ≤3° فرق +1 إلى +3%، ولـ≤5° نحو 93 إلى 95% من الشبكة، ولـ≤10° نحو 88 إلى 90%. السبب حذف الأجزاء الصغيرة المتفرقة (انحدار 3 إلى 10° مبعثر) والتبسيط.
 
 ## ما اتبسّط أو استُبعد
