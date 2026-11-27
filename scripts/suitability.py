@@ -16,7 +16,8 @@ from shapely.geometry import shape
 
 RAW = os.environ.get("RAW_DIR", "work/raw"); OSM = os.environ.get("OSM_OUT", "work/osm"); GRID = os.environ.get("GRID_DIR", "work/grid")
 N = 432                      # خلايا لكل درجة
-LON0, LAT1, LON1, LAT0 = 24.0, 32.0, 37.0, 22.0
+CC = os.environ.get("COUNTRY", "EGY")   # EGY أو LBY
+LON0, LAT1, LON1, LAT0 = {"EGY": (24.0, 32.0, 37.0, 22.0), "LBY": (9.0, 34.0, 26.0, 19.0)}[CC]
 W, H = (LON1 - LON0) * N, (LAT1 - LAT0) * N   # 5616 x 4320
 W, H = int(W), int(H)
 TR = from_origin(LON0, LAT1, 1 / N, 1 / N)
@@ -60,11 +61,28 @@ def block(la, lo):
     os.makedirs(BLK, exist_ok=True)
     np.savez_compressed(out, slope=slope, rough=rough, lc=lc)
 
+BAD_LC = (10, 40, 50, 70, 80, 90, 95)   # أشجار، زراعة، مبنى، ثلج، ماء، مستنقع، مانغروف: أي بكسل منها (10م) داخل الخلية يستبعدها
+def cmd_lcbad():
+    """بلال: تمرير ثانٍ على WorldCover بدقة 8x8 لكل خلية (نحو 32 م): تُستبعد الخلية إذا وُجد فيها أي بكسل من BAD_LC.
+    (الإصدار الأول كان يقبل خلية فيها حتى 50% غير صالح)"""
+    W = int((LON1 - LON0) * N); H = int((LAT1 - LAT0) * N); bad = np.zeros((H, W), bool); K = 8
+    for la in range(int(LAT0), int(LAT1)):
+        for lo in range(int(LON0), int(LON1)):
+            t = f"{RAW}/wc/N{(la // 3) * 3:02d}E{(lo // 3) * 3:03d}.tif"
+            if not os.path.exists(t): continue
+            with rasterio.open(t) as ds:
+                win = from_bounds(lo, la, lo + 1, la + 1, ds.transform)
+                a = ds.read(1, window=win, out_shape=(N * K, N * K), resampling=rasterio.enums.Resampling.nearest)
+            b = np.isin(a, BAD_LC).reshape(N, K, N, K).any(axis=(1, 3))
+            r0 = int((LAT1 - (la + 1)) * N); c0 = int((lo - LON0) * N); bad[r0:r0 + N, c0:c0 + N] = b
+        print("lat", la, flush=True)
+    np.save(f"{GRID}/lcbad.npy", np.packbits(bad, axis=1))
+
 def cmd_blocks():
     import time
     t0 = time.time()
-    for la in range(22, 32):
-        for lo in range(24, 37):
+    for la in range(int(LAT0), int(LAT1)):
+        for lo in range(int(LON0), int(LON1)):
             block(la, lo)
         print("lat", la, "done", int(time.time() - t0), "s", flush=True)
 
@@ -84,14 +102,14 @@ def raster_layer(name, all_touched):
 
 def cmd_osm():
     os.makedirs(GRID, exist_ok=True)
-    for name, at in (("protected", False), ("sand", False), ("water", False), ("landuse", False), ("roads", True), ("power", True)):
+    for name, at in (("protected", False), ("sand", False), ("water", False), ("landuse", True), ("roads", True), ("power", True)):
         a = raster_layer(name, at); np.save(f"{GRID}/osm_{name}.npy", np.packbits(a, axis=1)); print(name, int(a.sum()), "cells", flush=True)
 
 def cmd_combine():
     import shapefile
     sl = np.full((H, W), 255, np.uint8); rg = np.full((H, W), 255, np.uint8); lc = np.zeros((H, W), np.uint8)
-    for la in range(22, 32):
-        for lo in range(24, 37):
+    for la in range(int(LAT0), int(LAT1)):
+        for lo in range(int(LON0), int(LON1)):
             d = np.load(f"{BLK}/{la}_{lo}.npz"); r0 = int((LAT1 - (la + 1)) * N); c0 = int((lo - LON0) * N)
             sl[r0:r0 + N, c0:c0 + N] = d["slope"]; rg[r0:r0 + N, c0:c0 + N] = d["rough"]; lc[r0:r0 + N, c0:c0 + N] = d["lc"]
     L = lambda n: np.unpackbits(np.load(f"{GRID}/osm_{n}.npy"), axis=1)[:, :W].astype(bool)
@@ -99,10 +117,11 @@ def cmd_combine():
     # داخل مصر (Natural Earth ADM0_A3 == EGY)
     sf = shapefile.Reader(f"{RAW}/ne/ne_10m_admin_0_countries")
     nm = [f[0] for f in sf.fields[1:]]
-    geom = [shape(s.shape.__geo_interface__) for s in sf.iterShapeRecords() if dict(zip(nm, s.record)).get("ADM0_A3") == "EGY"][0]
+    geom = [shape(s.shape.__geo_interface__) for s in sf.iterShapeRecords() if dict(zip(nm, s.record)).get("ADM0_A3") == CC][0]
     inside = features.rasterize([(geom, 1)], out_shape=(H, W), transform=TR, all_touched=False).astype(bool)
     rough_thr = float(os.environ.get("ROUGH_THR", "0"))
-    base = inside & (lc >= LC_MIN * 100) & ~prot & ~sand & ~water & ~landuse & (sl != 255)
+    lcbad = np.unpackbits(np.load(f"{GRID}/lcbad.npy"), axis=1)[:, :W].astype(bool) if os.path.exists(f"{GRID}/lcbad.npy") else np.zeros((H, W), bool)
+    base = inside & (lc >= LC_MIN * 100) & ~prot & ~sand & ~water & ~landuse & ~lcbad & (sl != 255)
     if rough_thr: base &= rg < rough_thr
     sc = np.zeros((H, W), np.uint8)       # 0 غير صالح، 1: <=3°، 2: <=5°، 3: <=10°
     sc[base & (sl <= 100)] = 3; sc[base & (sl <= 50)] = 2; sc[base & (sl <= 30)] = 1
@@ -110,7 +129,7 @@ def cmd_combine():
     infra = roads | power
     ac = np.zeros((H, W), np.uint8)       # 1: <=10 كم، 2: <=25 كم، 3: أبعد
     lat_c = LAT1 - (np.arange(H) + 0.5) / N
-    sy = 111_000 / N; sx_mid = 111_000 / N * np.cos(np.radians(27))
+    sy = 111_000 / N; sx_mid = 111_000 / N * np.cos(np.radians((LAT0 + LAT1) / 2))
     dist = np.zeros((H, W), np.float32)
     CH = 600; HALO = 120
     for r in range(0, H, CH):
@@ -122,4 +141,4 @@ def cmd_combine():
     print("suitable cells", {k: int((sc == k).sum()) for k in (1, 2, 3)}, "inside", int(inside.sum()))
 
 if __name__ == "__main__":
-    {"blocks": cmd_blocks, "osm": cmd_osm, "combine": cmd_combine}[sys.argv[1]]()
+    {"blocks": cmd_blocks, "osm": cmd_osm, "combine": cmd_combine, "lcbad": cmd_lcbad}[sys.argv[1]]()
