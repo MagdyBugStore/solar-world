@@ -34,8 +34,8 @@
 </svg>
 
 <header>
-    <h2>☀️ مصر مليانة ألواح شمسية</h2>
-    <div>كل الأرض المناسبة في مصر حسب بيانات مفتوحة</div>
+    <h2>☀️ <span id="title">مصر</span> مليانة ألواح شمسية</h2>
+    <div>كل الأرض المناسبة حسب بيانات مفتوحة</div>
 </header>
 
 <div class="info">
@@ -46,6 +46,7 @@
 </div>
 
 <div class="controls">
+    <label>الدولة: <select id="country"><option value="egypt" selected>مصر</option><option value="libya">ليبيا</option></select></label>
     <label>أقصى انحدار:
         <select id="slope"><option value="1">3°</option><option value="2" selected>5°</option><option value="3">10°</option></select>
     </label>
@@ -69,17 +70,18 @@
     const map = L.map("map").setView([26.8, 30.8], 6);
     L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", { maxZoom: 18, attribution: "&copy; OpenStreetMap" }).addTo(map);
 
+    let CC = "egypt";
     const SL = { 1: 3, 2: 5, 3: 10 }, AC = { 1: 10, 2: 25, 3: null };
     let layer = null;
 
     function statFor(s, a) {
-        return SOLAR_STATS.classes.find(c => c.slope_max_deg === SL[s] && c.access_max_km === AC[a]);
+        return (CC === "egypt" ? SOLAR_STATS : SOLAR_STATS.libya).classes.find(c => c.slope_max_deg === SL[s] && c.access_max_km === AC[a]);
     }
 
     function redraw() {
         const s = +document.getElementById("slope").value, a = +document.getElementById("access").value;
         if (layer) map.removeLayer(layer);
-        layer = L.geoJSON(SUITABLE_EGYPT, {
+        layer = L.geoJSON(CC === "egypt" ? SUITABLE_EGYPT : SUITABLE_LIBYA, {
             filter: f => f.properties.s <= s && f.properties.a <= a,
             style: { className: "panels", color: "#ffcc00", weight: 0, stroke: false, fillOpacity: 1 },
             onEachFeature: (f, l) => l.bindPopup(
@@ -89,10 +91,16 @@
         }).addTo(map);
         const st = statFor(s, a);
         document.getElementById("area").textContent = fmt(st.area_km2);
-        document.getElementById("pct").textContent = "= " + st.pct_of_egypt + "% من مساحة مصر (" + fmt(SOLAR_STATS.egypt_reference_area_km2) + " كم²، Natural Earth)";
+        const S = CC === "egypt" ? SOLAR_STATS : SOLAR_STATS.libya;
+        document.getElementById("pct").textContent = "= " + st["pct_of_" + CC] + "% من مساحة " + (CC === "egypt" ? "مصر" : "ليبيا") + " (" + fmt(S[CC + "_reference_area_km2"]) + " كم²، Natural Earth)";
         const share = (93500 / st.area_km2 * 100).toFixed(1);
-        document.getElementById("compare").textContent = "93,500 كم² (غير موثق) = " + share + "% من الأرض الصالحة في مصر حسب هذا الاختيار";
+        document.getElementById("compare").textContent = "93,500 كم² (غير موثق) = " + share + "% من الأرض الصالحة في " + (CC === "egypt" ? "مصر" : "ليبيا") + " حسب هذا الاختيار";
     }
+    document.getElementById("country").onchange = e => {
+        CC = e.target.value; document.getElementById("title").textContent = CC === "egypt" ? "مصر" : "ليبيا";
+        const go = () => { map.setView(CC === "egypt" ? [26.8, 30.8] : [27, 17.5], 6); redraw(); };
+        if (CC === "libya" && typeof SUITABLE_LIBYA === "undefined") { const sc = document.createElement("script"); sc.src = "data/suitable_libya.js"; sc.onload = go; document.body.appendChild(sc); } else go();
+    };
     document.getElementById("slope").onchange = redraw;
     document.getElementById("access").onchange = redraw;
 
