@@ -14,6 +14,8 @@ LANDUSE = {"residential", "industrial", "commercial", "military", "farmland", "q
            "landfill", "railway", "cemetery", "farmyard", "orchard", "vineyard", "greenhouse_horticulture", "basin", "reservoir",
            # إضافات (التحقق من الاستبعاد): أراضٍ مشغولة أخرى
            "brownfield", "salt_pond", "religious", "education", "garages", "mining", "allotments", "depot", "port", "harbour", "plant_nursery", "meadow_farm"}
+# place=region/state/district... مناطق إدارية كبيرة (فزان، تيبستي) مش أرض مشغولة، فنحصر في المستوطنات
+SETTLEMENT = {"city", "town", "village", "hamlet", "suburb", "neighbourhood", "quarter", "city_block", "isolated_dwelling", "farm", "allotments", "locality", "square", "plot", "subdivision", "borough", "islet", "island"}
 MAN_MADE = {"works", "wastewater_plant", "water_works", "petroleum_well", "mineshaft", "storage_tank", "silo", "pier"}
 
 def classify(t, is_area):
@@ -25,7 +27,7 @@ def classify(t, is_area):
     if t.get("boundary") in ("protected_area", "national_park") or t.get("leisure") == "nature_reserve": L.append("protected")
     if t.get("natural") in ("sand", "dune"): L.append("sand")
     if t.get("natural") in ("water", "wetland") or t.get("waterway") == "riverbank" or t.get("landuse") == "reservoir": L.append("water")
-    if t.get("man_made") in MAN_MADE or t.get("military") or t.get("power") in ("plant", "generator") or t.get("landuse") in LANDUSE or t.get("aeroway") in ("aerodrome", "runway") and is_area or (t.get("place") and is_area): L.append("landuse")
+    if t.get("man_made") in MAN_MADE or t.get("military") or t.get("power") in ("plant", "generator") or t.get("landuse") in LANDUSE or t.get("aeroway") in ("aerodrome", "runway") and is_area or (t.get("place") in SETTLEMENT and is_area): L.append("landuse")
     return L
 
 def main():

@@ -97,5 +97,106 @@
  "notes": [
   "المساحات من شبكة 250 م، والشكل المعروض مبسّط ومحذوف منه الأجزاء الصغيرة",
   "لا توجد بيانات ملكية أو كادسترال ولا سعة شبكة الكهرباء"
- ]
+ ],
+ "libya": {
+  "generated": "2026-11-27",
+  "grid": {
+   "cells_per_degree": 432,
+   "size": [
+    7344,
+    6480
+   ],
+   "note": "الشبكة 1/432 درجة (نحو 257 م شمال-جنوب)، العرض يقل مع خط العرض؛ المساحات تحسب لكل صف بإسقاط متساوي المساحة على WGS84 (مكافئ EPSG:6933)"
+  },
+  "libya_reference_area_km2": 1623761,
+  "libya_reference_source": "Natural Earth 1:10m admin-0 v5.1.1 (ADM0_A3=LBY)",
+  "libya_cells_area_km2_from_grid": 1623790,
+  "classes": [
+   {
+    "slope_max_deg": 3,
+    "access_max_km": 10,
+    "area_km2": 229780,
+    "pct_of_libya": 14.15
+   },
+   {
+    "slope_max_deg": 3,
+    "access_max_km": 25,
+    "area_km2": 425462,
+    "pct_of_libya": 26.2
+   },
+   {
+    "slope_max_deg": 3,
+    "access_max_km": null,
+    "area_km2": 1202020,
+    "pct_of_libya": 74.03
+   },
+   {
+    "slope_max_deg": 5,
+    "access_max_km": 10,
+    "area_km2": 242349,
+    "pct_of_libya": 14.93
+   },
+   {
+    "slope_max_deg": 5,
+    "access_max_km": 25,
+    "area_km2": 447732,
+    "pct_of_libya": 27.57
+   },
+   {
+    "slope_max_deg": 5,
+    "access_max_km": null,
+    "area_km2": 1250021,
+    "pct_of_libya": 76.98
+   },
+   {
+    "slope_max_deg": 10,
+    "access_max_km": 10,
+    "area_km2": 251092,
+    "pct_of_libya": 15.46
+   },
+   {
+    "slope_max_deg": 10,
+    "access_max_km": 25,
+    "area_km2": 463173,
+    "pct_of_libya": 28.52
+   },
+   {
+    "slope_max_deg": 10,
+    "access_max_km": null,
+    "area_km2": 1286750,
+    "pct_of_libya": 79.25
+   }
+  ],
+  "thresholds": {
+   "landcover": "ESA WorldCover 2021 v200: 20 shrubland, 30 grassland, 60 bare/sparse؛ نسبة الخلية ≥50% (غير موثق)",
+   "slope": "متوسط الخلية من GLO-90؛ 3/5/10° (غير موثق)",
+   "access": "مسافة إقليدية إلى أقرب طريق (motorway..secondary) أو خط كهرباء من OSM؛ 10/25 كم (غير موثق)",
+   "dunes": "استبعاد OSM natural=sand/dune فقط؛ فلتر الخشونة مغلق لعدم قدرته على الفصل (انظر calibration_roughness.json)",
+   "min_polygon_km2": 60.0,
+   "min_hole_km2": 60.0,
+   "simplify_deg": 0.006
+  },
+  "sources": [
+   {
+    "name": "Natural Earth admin-0 countries 1:10m v5.1.1",
+    "url": "https://naciscdn.org/naturalearth/10m/cultural/ne_10m_admin_0_countries.zip"
+   },
+   {
+    "name": "Copernicus DEM GLO-90",
+    "url": "https://registry.opendata.aws/copernicus-dem/"
+   },
+   {
+    "name": "ESA WorldCover 2021 v200",
+    "url": "https://esa-worldcover.org/"
+   },
+   {
+    "name": "OpenStreetMap via Geofabrik egypt-latest.osm.pbf (27/11/2026)",
+    "url": "https://download.geofabrik.de/africa/egypt.html"
+   }
+  ],
+  "notes": [
+   "المساحات من شبكة 250 م، والشكل المعروض مبسّط ومحذوف منه الأجزاء الصغيرة",
+   "لا توجد بيانات ملكية أو كادسترال ولا سعة شبكة الكهرباء"
+  ]
+ }
 }
