@@ -1,0 +1,18 @@
+{
+  "note": "معايرة فلتر الخشونة (انحراف DEM GLO-90 عن متوسط محلي نافذته 15 بكسل، نحو 1.4 كم). النتيجة: لا يفصل الكثبان عن السهول بوضوح، فهو مغلق افتراضيا (ROUGH_THR=0). العتبات المجرّبة غير موثقة.",
+  "rough_percentiles_m_p10_p25_p50_p75_p90": {
+    "osm_sand_cells": [1, 3, 5, 8, 11],
+    "great_sand_sea_box_lat25-26.5_lon25.5-27.5": [1, 3, 5, 8, 10],
+    "kharga_dakhla_box_lat25-26_lon29.6-30.8": [1, 2, 3, 6, 13],
+    "inside_egypt_not_osm_sand": [1, 1, 2, 6, 16]
+  },
+  "kept_percent_below_threshold": {
+    "3": {"osm_sand": 22.3, "great_sand_sea": 23.6, "kharga_dakhla": 42.9},
+    "4": {"osm_sand": 34.6, "great_sand_sea": 36.1, "kharga_dakhla": 57.3},
+    "5": {"osm_sand": 46.0, "great_sand_sea": 47.4, "kharga_dakhla": 66.4},
+    "6": {"osm_sand": 56.3, "great_sand_sea": 57.5, "kharga_dakhla": 72.4},
+    "8": {"osm_sand": 73.1, "great_sand_sea": 74.5, "kharga_dakhla": 79.7}
+  },
+  "approx_area_km2_slope_le5_no_roughness_filter": 635895,
+  "approx_area_km2_slope_le5_with_rough_lt4": 439148
+}
