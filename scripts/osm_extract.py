@@ -11,7 +11,10 @@ PBF = os.environ.get("PBF", "work/raw/egypt-latest.osm.pbf")
 OUT = os.environ.get("OSM_OUT", "work/osm")
 ROAD = {"motorway", "trunk", "primary", "secondary", "motorway_link", "trunk_link", "primary_link", "secondary_link"}
 LANDUSE = {"residential", "industrial", "commercial", "military", "farmland", "quarry", "retail", "construction",
-           "landfill", "railway", "cemetery", "farmyard", "orchard", "vineyard", "greenhouse_horticulture", "basin", "reservoir"}
+           "landfill", "railway", "cemetery", "farmyard", "orchard", "vineyard", "greenhouse_horticulture", "basin", "reservoir",
+           # إضافات (التحقق من الاستبعاد): أراضٍ مشغولة أخرى
+           "brownfield", "salt_pond", "religious", "education", "garages", "mining", "allotments", "depot", "port", "harbour", "plant_nursery", "meadow_farm"}
+MAN_MADE = {"works", "wastewater_plant", "water_works", "petroleum_well", "mineshaft", "storage_tank", "silo", "pier"}
 
 def classify(t, is_area):
     """returns list of layer names for tag dict t"""
@@ -22,7 +25,7 @@ def classify(t, is_area):
     if t.get("boundary") in ("protected_area", "national_park") or t.get("leisure") == "nature_reserve": L.append("protected")
     if t.get("natural") in ("sand", "dune"): L.append("sand")
     if t.get("natural") in ("water", "wetland") or t.get("waterway") == "riverbank" or t.get("landuse") == "reservoir": L.append("water")
-    if t.get("landuse") in LANDUSE or t.get("aeroway") in ("aerodrome", "runway") and is_area or (t.get("place") and is_area): L.append("landuse")
+    if t.get("man_made") in MAN_MADE or t.get("military") or t.get("power") in ("plant", "generator") or t.get("landuse") in LANDUSE or t.get("aeroway") in ("aerodrome", "runway") and is_area or (t.get("place") and is_area): L.append("landuse")
     return L
 
 def main():
@@ -30,10 +33,10 @@ def main():
     files = {n: open(f"{OUT}/{n}.geojsonl", "w") for n in ("roads", "power", "protected", "sand", "water", "landuse")}
     counts = {n: 0 for n in files}; bad = 0
     fab = osmium.geom.GeoJSONFactory()
-    keep = ("highway", "power", "boundary", "leisure", "natural", "waterway", "landuse", "aeroway", "place", "name", "protect_class", "water")
+    keep = ("highway", "power", "boundary", "leisure", "natural", "waterway", "landuse", "aeroway", "place", "name", "protect_class", "water", "man_made", "military")
     fp = osmium.FileProcessor(PBF, osmium.osm.NODE | osmium.osm.WAY | osmium.osm.AREA) \
         .with_locations("dense_file_array," + OUT + "/nodes.idx").with_areas(
-            F.KeyFilter("boundary", "leisure", "natural", "landuse", "aeroway", "place", "waterway", "highway", "power"))
+            F.KeyFilter("boundary", "leisure", "natural", "landuse", "aeroway", "place", "waterway", "highway", "power", "man_made", "military"))
     for o in fp:
         if o.is_node(): continue
         if o.is_way():

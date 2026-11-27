@@ -16,7 +16,8 @@ RAW = os.environ.get("RAW_DIR", "work/raw")
 NE = "https://naciscdn.org/naturalearth/10m/cultural/ne_10m_admin_0_countries.zip"
 DEM = "https://copernicus-dem-90m.s3.amazonaws.com/Copernicus_DSM_COG_30_{ns}_00_{ew}_00_DEM/Copernicus_DSM_COG_30_{ns}_00_{ew}_00_DEM.tif"
 WC = "https://esa-worldcover.s3.eu-central-1.amazonaws.com/v200/2021/map/ESA_WorldCover_10m_2021_v200_{t}_Map.tif"
-OSM = "https://download.geofabrik.de/africa/egypt-latest.osm.pbf"
+CC = os.environ.get("COUNTRY", "EGY")   # EGY أو LBY
+OSM = {"EGY": "https://download.geofabrik.de/africa/egypt-latest.osm.pbf", "LBY": "https://download.geofabrik.de/africa/libya-latest.osm.pbf"}[CC]
 
 def get(url, out):
     os.makedirs(os.path.dirname(out), exist_ok=True)
@@ -34,9 +35,9 @@ def borders():
     names = [f[0] for f in sf.fields[1:]]
     for sr in sf.iterShapeRecords():
         rec = dict(zip(names, sr.record))
-        if rec.get("ADM0_A3") == "EGY":
+        if rec.get("ADM0_A3") == CC:
             return shape(sr.shape.__geo_interface__)
-    raise SystemExit("EGY not found")
+    raise SystemExit(CC + " not found")
 
 def tiles(poly, step):
     x0, y0, x1, y1 = poly.bounds
@@ -48,7 +49,7 @@ def tiles(poly, step):
 def main():
     what = sys.argv[1] if len(sys.argv) > 1 else "all"
     poly = borders()
-    print("Egypt bounds", poly.bounds)
+    print(CC, "bounds", poly.bounds)
     if what in ("dem", "all"):
         n = 0
         for la, lo in tiles(poly, 1):
@@ -62,7 +63,7 @@ def main():
             if get(WC.format(t=t), f"{RAW}/wc/{t}.tif"): n += 1
         print("worldcover tiles", n)
     if what in ("osm", "all"):
-        get(OSM, f"{RAW}/egypt-latest.osm.pbf")
+        get(OSM, f"{RAW}/{OSM.rsplit('/', 1)[1]}")
 
 if __name__ == "__main__":
     main()
