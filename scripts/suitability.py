@@ -121,7 +121,14 @@ def cmd_combine():
     inside = features.rasterize([(geom, 1)], out_shape=(H, W), transform=TR, all_touched=False).astype(bool)
     rough_thr = float(os.environ.get("ROUGH_THR", "0"))
     lcbad = np.unpackbits(np.load(f"{GRID}/lcbad.npy"), axis=1)[:, :W].astype(bool) if os.path.exists(f"{GRID}/lcbad.npy") else np.zeros((H, W), bool)
-    base = inside & (lc >= LC_MIN * 100) & ~prot & ~sand & ~water & ~landuse & ~lcbad & (sl != 255)
+    # ماسك الكثبان العالمي (Gunn 2026، MIT، دقة 0.1°): أي خلية داخل خلية كثبان تُستبعد (تقريبي: ~11 كم)
+    dune = np.zeros((H, W), bool); dp = f"{RAW}/dune/dune-mask-rev1.tif"
+    if os.path.exists(dp):
+        with rasterio.open(dp) as ds:
+            m = ds.read(1); lon = LON0 + (np.arange(W) + 0.5) / N; lat = LAT1 - (np.arange(H) + 0.5) / N
+            ci = np.clip(((lon - ds.bounds.left) / 0.1).astype(int), 0, m.shape[1] - 1); ri = np.clip(((ds.bounds.top - lat) / 0.1).astype(int), 0, m.shape[0] - 1)
+            dune = (m[np.ix_(ri, ci)] == 1)
+    base = inside & ~dune & (lc >= LC_MIN * 100) & ~prot & ~sand & ~water & ~landuse & ~lcbad & (sl != 255)
     if rough_thr: base &= rg < rough_thr
     sc = np.zeros((H, W), np.uint8)       # 0 غير صالح، 1: <=3°، 2: <=5°، 3: <=10°
     sc[base & (sl <= 100)] = 3; sc[base & (sl <= 50)] = 2; sc[base & (sl <= 30)] = 1
