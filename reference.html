@@ -1,0 +1,321 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Solar World Map</title>
+
+    <link rel="stylesheet"
+    href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+
+    <style>
+        * { box-sizing: border-box; }
+
+        body {
+            margin: 0;
+            background: #101820;
+            color: white;
+            font-family: Arial;
+        }
+
+        header { text-align: center; padding: 20px 16px 8px; }
+        h2 { color: #ffcc00; margin: 0 0 6px; }
+        header p { margin: 0; }
+
+        .info { text-align: center; background: #1c2b36; padding: 16px; }
+        .number { font-size: 35px; font-weight: bold; color: #ffcc00; margin: 8px; }
+        .unverified { color: #ff9f9f; font-size: 13px; }
+
+        .totals {
+            display: flex; justify-content: center; gap: 28px;
+            flex-wrap: wrap; margin-top: 10px;
+        }
+        .totals b { font-size: 20px; color: #ffcc00; }
+
+        .legend {
+            display: flex; flex-wrap: wrap; gap: 8px 18px; justify-content: center;
+            padding: 12px 16px; background: #16222c; font-size: 14px;
+        }
+        .legend span { display: inline-flex; align-items: center; gap: 6px; }
+        .legend i {
+            width: 16px; height: 16px; border-radius: 3px; display: inline-block;
+            border: 1px solid rgba(255,255,255,.6);
+        }
+        .legend i.avoid { background: repeating-linear-gradient(45deg,#8a8a8a,#8a8a8a 3px,#4a4a4a 3px,#4a4a4a 6px); }
+
+        #map { width: 100%; height: 72vh; }
+
+        .sites {
+            padding: 16px; display: flex; flex-wrap: wrap; gap: 8px;
+            justify-content: center; background: #1c2b36;
+        }
+        .sites button {
+            background: #101820; color: white; border: 2px solid #3a4b58;
+            border-radius: 8px; padding: 8px 12px; font-size: 14px; cursor: pointer;
+        }
+        .sites button:focus-visible { outline: 2px solid #ffcc00; }
+
+        .popup h3 { margin: 0 0 6px; }
+        .popup p { margin: 3px 0; }
+        .popup .unverified { color: #b00020; }
+
+        footer {
+            padding: 14px 16px 24px; text-align: center;
+            font-size: 13px; color: #aab6c0; line-height: 1.7;
+        }
+    </style>
+</head>
+
+<body>
+
+<header>
+    <h2>☀️ تشغيل العالم بالطاقة الشمسية</h2>
+    <p>توزيع الألواح في مصر وليبيا حسب طبيعة الأرض</p>
+    <p><a href="./" style="color:#ffcc00">شوف مصر مليانة ألواح شمسية على أرض حقيقية ←</a></p>
+</header>
+
+<div class="info">
+    مساحة الألواح الشمسية الإجمالية
+    <div class="number">93,500 كم²</div>
+    <span class="unverified">الرقم غير موثق</span>
+    <div class="totals">
+        <div>مصر: <b id="egTotal"></b> كم²</div>
+        <div>ليبيا: <b id="lyTotal"></b> كم²</div>
+    </div>
+</div>
+
+<div class="legend" id="legend"></div>
+
+<div id="map"></div>
+
+<div class="sites" id="sites"></div>
+
+<footer>
+    الألواح بتتوزع على أرض مسطّحة وصلبة قريبة من النيل والساحل والطرق الرئيسية والواحات،
+    وبعيد عن بحور الرمال المتحركة (المنطقة الرمادية).<br>
+    الأشكال والإحداثيات تقريبية ومرسومة يدويًا: مش خريطة جدوى، ولا بتحسب الشبكة الكهربائية
+    ولا ملكية الأراضي ولا المحميات.<br>
+    توزيع المساحة تابع لطول الممرات ومساحة الأحواض، ونسبه غير موثقة. كل رقم غير مذكور عليه مصدر هو «غير موثق».
+</footer>
+
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+<script>
+    // المساحة الإجمالية المطلوبة (كم²) - الرقم غير موثق
+    const TOTAL_AREA_KM2 = 93500;
+
+    const ENV = {
+        nile:  { label: "حافة الصحراء على وادي النيل", color: "#8bd450" },
+        coast: { label: "السهل الساحلي",               color: "#ffcc00" },
+        road:  { label: "ممر طريق رئيسي بين المدن",    color: "#ff9a3c" },
+        basin: { label: "منخفض أو سهل مسطّح حول واحة", color: "#ff6f91" }
+    };
+    const COUNTRY = { eg: "مصر", ly: "ليبيا" };
+
+    // مناطق تتجنبها الألواح: بحور رمال متحركة (مركز، نصف طول شمال-جنوب كم، شرق-غرب كم، دوران) - تقريبي
+    const SAND_SEAS = [
+        { name: "بحر الرمال العظيم",  c: [26.0, 25.6], a: 380, b: 110, rot: 0 },
+        { name: "بحر رمال أوباري",    c: [27.2, 12.1], a: 55,  b: 170, rot: 0 },
+        { name: "بحر رمال مرزق",      c: [25.0, 12.9], a: 120, b: 150, rot: 0 },
+        { name: "بحر رمال ربيانة",    c: [24.0, 21.6], a: 70,  b: 105, rot: 0 }
+    ];
+
+    // الممرات: خط مرجعي (طريق أو حافة نهر/ساحل) + جانب الصحراء + بعد عن الخط (كم).
+    //   side: +1 يسار اتجاه الرسم، -1 يمين، 0 شريط متمركز على الخط
+    // الأحواض: مركز + أنصاف أقطار تقريبية (كم).
+    // عرض الشرائط وأقطار الأحواض بتتضرب كلها في معامل واحد يتحسب عشان المجموع = المساحة الإجمالية،
+    // يعني المساحة موزعة حسب طول الممرات ومساحة الأحواض (النسب غير موثقة).
+    const ZONES = [
+        // ---------- مصر ----------
+        { id: "eg-nile", country: "eg", env: "nile", kind: "band",
+          name: "غرب وادي النيل (أسوان - بني سويف)",
+          line: [[24.2,32.75],[24.98,32.78],[25.7,32.55],[26.1,32.1],[26.56,31.6],[27.18,31.1],[28.1,30.65],[29.0,30.95]],
+          side: 1, offset: 8, base: 1,
+          why: "أرض مسطّحة قريبة من الشبكة والمياه والطرق، بعد الأراضي الزراعية" },
+        { id: "eg-red", country: "eg", env: "coast", kind: "band",
+          name: "ساحل البحر الأحمر (السويس - مرسى علم)",
+          line: [[29.9,32.55],[29.1,32.65],[28.35,33.05],[27.25,33.75],[26.7,34.0],[25.8,34.5],[25.05,34.85]],
+          side: -1, offset: 6, base: 1,
+          why: "سهل ساحلي مسطّح عليه طريق وشبكة، وسطوع شمس عالي" },
+        { id: "eg-kharga", country: "eg", env: "basin", kind: "ellipse",
+          name: "منخفض الخارجة", c: [25.4,30.55], a: 60, b: 25, rot: 0, base: 1,
+          why: "منخفض طويل مسطّح على طريق الواحات" },
+        { id: "eg-dakhla", country: "eg", env: "basin", kind: "ellipse",
+          name: "الداخلة", c: [25.6,28.9], a: 28, b: 40, rot: 0, base: 1,
+          why: "سهل واحة بمياه جوفية وطريق" },
+        { id: "eg-farafra", country: "eg", env: "basin", kind: "ellipse",
+          name: "الفرافرة", c: [27.05,27.95], a: 30, b: 35, rot: 0, base: 1,
+          why: "سهل واحة على طريق القاهرة - الواحات" },
+        { id: "eg-bahariya", country: "eg", env: "basin", kind: "ellipse",
+          name: "الواحات البحرية", c: [28.35,28.85], a: 25, b: 30, rot: 0, base: 1,
+          why: "أقرب واحة للقاهرة والشبكة" },
+        { id: "eg-toshka", country: "eg", env: "basin", kind: "ellipse",
+          name: "توشكى", c: [22.7,31.3], a: 50, b: 35, rot: 0, base: 1,
+          why: "سهل مفتوح غرب بحيرة ناصر وأعلى سطوع شمس في مصر" },
+        { id: "eg-uweinat", country: "eg", env: "basin", kind: "ellipse",
+          name: "شرق العوينات", c: [22.5,28.6], a: 45, b: 30, rot: 0, base: 1,
+          why: "سهل صحراوي جنوبي مفتوح" },
+        // ---------- ليبيا ----------
+        { id: "ly-sirte", country: "ly", env: "coast", kind: "band",
+          name: "ساحل خليج سرت (مصراتة - أجدابيا)",
+          line: [[32.37,15.1],[31.2,16.6],[30.5,18.55],[30.4,19.6],[30.75,20.2]],
+          side: -1, offset: 8, base: 1,
+          why: "سهل ساحلي مسطّح على الطريق الساحلي والشبكة والموانئ" },
+        { id: "ly-sabha-hun", country: "ly", env: "road", kind: "band",
+          name: "طريق سبها - هون (الجفرة)",
+          line: [[27.04,14.43],[27.9,15.2],[29.1,15.95]],
+          side: 0, offset: 0, base: 1,
+          why: "هضبة حصوية صلبة على طريق رئيسي بعيد عن بحور الرمال" },
+        { id: "ly-awjila", country: "ly", env: "road", kind: "band",
+          name: "طريق أجدابيا - أوجلة - جالو",
+          line: [[30.75,20.2],[29.9,20.9],[29.1,21.3]],
+          side: 0, offset: 0, base: 1,
+          why: "سهل مسطّح على طريق يوصل الساحل بالواحات" },
+        { id: "ly-kufra", country: "ly", env: "basin", kind: "ellipse",
+          name: "واحة الكفرة", c: [24.3,23.4], a: 50, b: 38, rot: 0, base: 1,
+          why: "سهل واحة بمياه جوفية في أقصى الجنوب الشرقي" },
+        { id: "ly-tazirbu", country: "ly", env: "basin", kind: "ellipse",
+          name: "تازربو", c: [25.75,21.0], a: 25, b: 32, rot: 0, base: 1,
+          why: "سهل واحة على طريق الكفرة - أجدابيا" }
+    ];
+
+    // ---------- هندسة ----------
+    const fmt = (n) => Math.round(n).toLocaleString("en-US");
+    const KM_LAT = 111;
+    const kmLon = (lat) => 111.32 * Math.cos(lat * Math.PI / 180);
+
+    // [lat, lon] -> كم (شرق، شمال) حول مرجع
+    const toKm = (p, ref) => [(p[1] - ref[1]) * kmLon(ref[0]), (p[0] - ref[0]) * KM_LAT];
+    const fromKm = (xy, ref) => [ref[0] + xy[1] / KM_LAT, ref[1] + xy[0] / kmLon(ref[0])];
+
+    // شريط حول خط: من offset إلى offset + width كم من الخط ناحية side (أو متمركز لو side = 0)
+    function bandPolygon(line, side, offset, width) {
+        const ref = line[Math.floor(line.length / 2)];
+        const pts = line.map((p) => toKm(p, ref));
+        const normals = pts.map((p, i) => {
+            const a = pts[Math.max(0, i - 1)], b = pts[Math.min(pts.length - 1, i + 1)];
+            const dx = b[0] - a[0], dy = b[1] - a[1], len = Math.hypot(dx, dy) || 1;
+            return [-dy / len, dx / len]; // يسار اتجاه الرسم
+        });
+        let d1, d2;
+        if (side === 0) { d1 = -width / 2; d2 = width / 2; }
+        else { d1 = side * offset; d2 = side * (offset + width); }
+        const edge1 = pts.map((p, i) => [p[0] + normals[i][0] * d1, p[1] + normals[i][1] * d1]);
+        const edge2 = pts.map((p, i) => [p[0] + normals[i][0] * d2, p[1] + normals[i][1] * d2]);
+        return edge1.concat(edge2.reverse()).map((xy) => fromKm(xy, ref));
+    }
+
+    // شكل بيضاوي: a نصف قطر شمال-جنوب، b شرق-غرب (كم)، rot بالدرجات
+    function ellipsePolygon(c, a, b, rot) {
+        const out = [], r = (rot || 0) * Math.PI / 180;
+        for (let i = 0; i < 48; i++) {
+            const t = (i / 48) * 2 * Math.PI;
+            const x = b * Math.cos(t), y = a * Math.sin(t);
+            out.push(fromKm([x * Math.cos(r) - y * Math.sin(r), x * Math.sin(r) + y * Math.cos(r)], c));
+        }
+        return out;
+    }
+
+    // مساحة مضلع بالكيلومتر المربع (إسقاط محلي + شوليس)
+    function areaKm2(poly) {
+        const ref = poly[0];
+        const p = poly.map((q) => toKm(q, ref));
+        let s = 0;
+        for (let i = 0; i < p.length; i++) {
+            const j = (i + 1) % p.length;
+            s += p[i][0] * p[j][1] - p[j][0] * p[i][1];
+        }
+        return Math.abs(s) / 2;
+    }
+
+    // عرض الشريط الأساسي (كم) وأنصاف أقطار الأحواض بتتضرب في معامل f
+    const BASE_WIDTH_KM = 10;
+    function build(f) {
+        return ZONES.map((z) => {
+            const poly = z.kind === "band"
+                ? bandPolygon(z.line, z.side, z.offset, BASE_WIDTH_KM * f * z.base)
+                : ellipsePolygon(z.c, z.a * f, z.b * f, z.rot);
+            return { z, poly, area: areaKm2(poly) };
+        });
+    }
+
+    // نجيب f بحيث مجموع المساحات = المساحة الإجمالية (بحث ثنائي)
+    let lo = 0.1, hi = 20, built;
+    for (let i = 0; i < 60; i++) {
+        const mid = (lo + hi) / 2;
+        const sum = build(mid).reduce((s, x) => s + x.area, 0);
+        if (sum < TOTAL_AREA_KM2) lo = mid; else hi = mid;
+    }
+    built = build((lo + hi) / 2);
+
+    // ---------- الخريطة ----------
+    const map = L.map("map").setView([27, 22], 5);
+
+    L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+        maxZoom: 18,
+        attribution: "&copy; OpenStreetMap"
+    }).addTo(map);
+
+    const avoidLayer = L.featureGroup();
+    SAND_SEAS.forEach((s) => {
+        L.polygon(ellipsePolygon(s.c, s.a, s.b, s.rot), {
+            color: "#9a9a9a", weight: 1, dashArray: "4 4",
+            fillColor: "#6b6b6b", fillOpacity: 0.55
+        }).bindPopup(`<div class="popup"><h3>${s.name}</h3>
+            <p>رمال متحركة: بتتجنب لأنها بتدفن الألواح وبتصعّب التركيب والصيانة.</p>
+            <p class="unverified">الشكل تقريبي، غير موثق</p></div>`).addTo(avoidLayer);
+    });
+    avoidLayer.addTo(map);
+
+    const panelsLayer = L.featureGroup();
+    const totals = { eg: 0, ly: 0 };
+    const buttons = document.getElementById("sites");
+
+    built.forEach(({ z, poly, area }) => {
+        const env = ENV[z.env];
+        totals[z.country] += area;
+
+        const shape = L.polygon(poly, {
+            color: env.color, weight: 2, fillColor: env.color, fillOpacity: 0.6
+        }).bindPopup(`<div class="popup"><h3>☀️ ${z.name}</h3>
+            <p>${COUNTRY[z.country]} - ${env.label}</p>
+            <p>مساحة الألواح: ${fmt(area)} كم²</p>
+            <p>سبب الاختيار: ${z.why}</p>
+            <p class="unverified">الحصة والشكل تقريبيين (غير موثق)</p></div>`).addTo(panelsLayer);
+
+        const btn = document.createElement("button");
+        btn.style.borderColor = env.color;
+        btn.textContent = `${z.name} - ${fmt(area)} كم²`;
+        btn.addEventListener("click", () => {
+            map.fitBounds(shape.getBounds(), { maxZoom: 8, padding: [30, 30] });
+            shape.openPopup();
+        });
+        buttons.appendChild(btn);
+    });
+    panelsLayer.addTo(map);
+
+    L.control.layers(null, {
+        "مواقع الألواح": panelsLayer,
+        "بحور الرمال (تجنّب)": avoidLayer
+    }, { collapsed: false }).addTo(map);
+
+    map.fitBounds(panelsLayer.getBounds(), { padding: [20, 20] });
+
+    // ---------- أرقام وأسطورة ----------
+    document.getElementById("egTotal").textContent = fmt(totals.eg);
+    document.getElementById("lyTotal").textContent = fmt(totals.ly);
+
+    const legend = document.getElementById("legend");
+    Object.values(ENV).forEach((e) => {
+        const s = document.createElement("span");
+        s.innerHTML = `<i style="background:${e.color}"></i>${e.label}`;
+        legend.appendChild(s);
+    });
+    const a = document.createElement("span");
+    a.innerHTML = `<i class="avoid"></i>رمال متحركة (تتجنب)`;
+    legend.appendChild(a);
+</script>
+
+</body>
+</html>
