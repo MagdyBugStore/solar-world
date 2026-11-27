@@ -58,7 +58,8 @@ def main():
         {"name": "Natural Earth admin-0 countries 1:10m v5.1.1", "url": "https://naciscdn.org/naturalearth/10m/cultural/ne_10m_admin_0_countries.zip"},
         {"name": "Copernicus DEM GLO-90", "url": "https://registry.opendata.aws/copernicus-dem/"},
         {"name": "ESA WorldCover 2021 v200", "url": "https://esa-worldcover.org/"},
-        {"name": "OpenStreetMap via Geofabrik egypt-latest.osm.pbf (27/11/2026)", "url": "https://download.geofabrik.de/africa/egypt.html"}]
+        {"name": "OpenStreetMap via Geofabrik egypt-latest.osm.pbf (27/11/2026)", "url": "https://download.geofabrik.de/africa/egypt.html"},
+        {"name": "Gunn 2026, dune-world dune-mask-rev1.tif (MIT، دقة 0.1° ≈ 11 كم، استبعاد الكثبان)", "url": "https://github.com/geomorphlab/dune-world"}]
     stats["notes"] = ["المساحات من شبكة 250 م، والشكل المعروض مبسّط ومحذوف منه الأجزاء الصغيرة", "لا توجد بيانات ملكية أو كادسترال ولا سعة شبكة الكهرباء"]
     # --- polygons: لكل كود
     feats = []

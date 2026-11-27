@@ -6,61 +6,61 @@
   "grid_vs_natural_earth_area_diff_pct": -0.07
  },
  "geojson": {
-  "features": 9,
-  "polygons": 494,
+  "features": 8,
+  "polygons": 530,
   "bbox": [
    24.6875,
    22.0,
    35.6713,
-   31.5324
+   31.5139
   ],
-  "size_mb": 1.09
+  "size_mb": 0.9
  },
  "displayed_vs_grid": {
   "slope<=3, access<=10": {
-   "displayed_polygons_km2": 185876,
-   "grid_km2": 185742,
-   "displayed_vs_grid_pct": 100.1
+   "displayed_polygons_km2": 142573,
+   "grid_km2": 145096,
+   "displayed_vs_grid_pct": 98.3
   },
   "slope<=3, access<=25": {
-   "displayed_polygons_km2": 332145,
-   "grid_km2": 333348,
-   "displayed_vs_grid_pct": 99.6
+   "displayed_polygons_km2": 255555,
+   "grid_km2": 260966,
+   "displayed_vs_grid_pct": 97.9
   },
   "slope<=3, access<=all": {
-   "displayed_polygons_km2": 582903,
-   "grid_km2": 577047,
-   "displayed_vs_grid_pct": 101.0
+   "displayed_polygons_km2": 430091,
+   "grid_km2": 433606,
+   "displayed_vs_grid_pct": 99.2
   },
   "slope<=5, access<=10": {
-   "displayed_polygons_km2": 186515,
-   "grid_km2": 202480,
-   "displayed_vs_grid_pct": 92.1
+   "displayed_polygons_km2": 142573,
+   "grid_km2": 159106,
+   "displayed_vs_grid_pct": 89.6
   },
   "slope<=5, access<=25": {
-   "displayed_polygons_km2": 333470,
-   "grid_km2": 363544,
-   "displayed_vs_grid_pct": 91.7
+   "displayed_polygons_km2": 256037,
+   "grid_km2": 286325,
+   "displayed_vs_grid_pct": 89.4
   },
   "slope<=5, access<=all": {
-   "displayed_polygons_km2": 584569,
-   "grid_km2": 624000,
-   "displayed_vs_grid_pct": 93.7
+   "displayed_polygons_km2": 430914,
+   "grid_km2": 471663,
+   "displayed_vs_grid_pct": 91.4
   },
   "slope<=10, access<=10": {
-   "displayed_polygons_km2": 187838,
-   "grid_km2": 217469,
-   "displayed_vs_grid_pct": 86.4
+   "displayed_polygons_km2": 143897,
+   "grid_km2": 172734,
+   "displayed_vs_grid_pct": 83.3
   },
   "slope<=10, access<=25": {
-   "displayed_polygons_km2": 337174,
-   "grid_km2": 391406,
-   "displayed_vs_grid_pct": 86.1
+   "displayed_polygons_km2": 259741,
+   "grid_km2": 311686,
+   "displayed_vs_grid_pct": 83.3
   },
   "slope<=10, access<=all": {
-   "displayed_polygons_km2": 592301,
-   "grid_km2": 667139,
-   "displayed_vs_grid_pct": 88.8
+   "displayed_polygons_km2": 438646,
+   "grid_km2": 509602,
+   "displayed_vs_grid_pct": 86.1
   }
  }
 }

@@ -15,56 +15,56 @@
   {
    "slope_max_deg": 3,
    "access_max_km": 10,
-   "area_km2": 185742,
-   "pct_of_egypt": 18.55
+   "area_km2": 145096,
+   "pct_of_egypt": 14.49
   },
   {
    "slope_max_deg": 3,
    "access_max_km": 25,
-   "area_km2": 333348,
-   "pct_of_egypt": 33.3
+   "area_km2": 260966,
+   "pct_of_egypt": 26.07
   },
   {
    "slope_max_deg": 3,
    "access_max_km": null,
-   "area_km2": 577047,
-   "pct_of_egypt": 57.64
+   "area_km2": 433606,
+   "pct_of_egypt": 43.31
   },
   {
    "slope_max_deg": 5,
    "access_max_km": 10,
-   "area_km2": 202480,
-   "pct_of_egypt": 20.23
+   "area_km2": 159106,
+   "pct_of_egypt": 15.89
   },
   {
    "slope_max_deg": 5,
    "access_max_km": 25,
-   "area_km2": 363544,
-   "pct_of_egypt": 36.32
+   "area_km2": 286325,
+   "pct_of_egypt": 28.6
   },
   {
    "slope_max_deg": 5,
    "access_max_km": null,
-   "area_km2": 624000,
-   "pct_of_egypt": 62.33
+   "area_km2": 471663,
+   "pct_of_egypt": 47.12
   },
   {
    "slope_max_deg": 10,
    "access_max_km": 10,
-   "area_km2": 217469,
-   "pct_of_egypt": 21.72
+   "area_km2": 172734,
+   "pct_of_egypt": 17.26
   },
   {
    "slope_max_deg": 10,
    "access_max_km": 25,
-   "area_km2": 391406,
-   "pct_of_egypt": 39.1
+   "area_km2": 311686,
+   "pct_of_egypt": 31.14
   },
   {
    "slope_max_deg": 10,
    "access_max_km": null,
-   "area_km2": 667139,
-   "pct_of_egypt": 66.64
+   "area_km2": 509602,
+   "pct_of_egypt": 50.91
   }
  ],
  "thresholds": {
@@ -92,6 +92,10 @@
   {
    "name": "OpenStreetMap via Geofabrik egypt-latest.osm.pbf (27/11/2026)",
    "url": "https://download.geofabrik.de/africa/egypt.html"
+  },
+  {
+   "name": "Gunn 2026, dune-world dune-mask-rev1.tif (MIT، دقة 0.1° ≈ 11 كم، استبعاد الكثبان)",
+   "url": "https://github.com/geomorphlab/dune-world"
   }
  ],
  "notes": [
@@ -115,56 +119,56 @@
    {
     "slope_max_deg": 3,
     "access_max_km": 10,
-    "area_km2": 229780,
-    "pct_of_libya": 14.15
+    "area_km2": 155079,
+    "pct_of_libya": 9.55
    },
    {
     "slope_max_deg": 3,
     "access_max_km": 25,
-    "area_km2": 425462,
-    "pct_of_libya": 26.2
+    "area_km2": 288994,
+    "pct_of_libya": 17.8
    },
    {
     "slope_max_deg": 3,
     "access_max_km": null,
-    "area_km2": 1202020,
-    "pct_of_libya": 74.03
+    "area_km2": 809335,
+    "pct_of_libya": 49.84
    },
    {
     "slope_max_deg": 5,
     "access_max_km": 10,
-    "area_km2": 242349,
-    "pct_of_libya": 14.93
+    "area_km2": 164625,
+    "pct_of_libya": 10.14
    },
    {
     "slope_max_deg": 5,
     "access_max_km": 25,
-    "area_km2": 447732,
-    "pct_of_libya": 27.57
+    "area_km2": 305303,
+    "pct_of_libya": 18.8
    },
    {
     "slope_max_deg": 5,
     "access_max_km": null,
-    "area_km2": 1250021,
-    "pct_of_libya": 76.98
+    "area_km2": 842269,
+    "pct_of_libya": 51.87
    },
    {
     "slope_max_deg": 10,
     "access_max_km": 10,
-    "area_km2": 251092,
-    "pct_of_libya": 15.46
+    "area_km2": 171337,
+    "pct_of_libya": 10.55
    },
    {
     "slope_max_deg": 10,
     "access_max_km": 25,
-    "area_km2": 463173,
-    "pct_of_libya": 28.52
+    "area_km2": 316795,
+    "pct_of_libya": 19.51
    },
    {
     "slope_max_deg": 10,
     "access_max_km": null,
-    "area_km2": 1286750,
-    "pct_of_libya": 79.25
+    "area_km2": 869159,
+    "pct_of_libya": 53.53
    }
   ],
   "thresholds": {
@@ -192,6 +196,10 @@
    {
     "name": "OpenStreetMap via Geofabrik egypt-latest.osm.pbf (27/11/2026)",
     "url": "https://download.geofabrik.de/africa/egypt.html"
+   },
+   {
+    "name": "Gunn 2026, dune-world dune-mask-rev1.tif (MIT، دقة 0.1° ≈ 11 كم، استبعاد الكثبان)",
+    "url": "https://github.com/geomorphlab/dune-world"
    }
   ],
   "notes": [
