@@ -23,29 +23,99 @@
 
         header {
             text-align: center;
-            padding: 20px;
+            padding: 20px 16px 8px;
         }
 
         h2 {
             color: #ffcc00;
+            margin: 0 0 6px;
+        }
+
+        header p {
+            margin: 0;
         }
 
         .info {
             text-align: center;
             background: #1c2b36;
-            padding: 20px;
+            padding: 16px;
         }
 
         .number {
             font-size: 35px;
             font-weight: bold;
             color: #ffcc00;
-            margin: 10px;
+            margin: 8px;
         }
+
+        .unverified {
+            color: #ff9f9f;
+            font-size: 13px;
+        }
+
+        .totals {
+            display: flex;
+            justify-content: center;
+            gap: 28px;
+            flex-wrap: wrap;
+            margin-top: 10px;
+        }
+
+        .totals b {
+            font-size: 20px;
+        }
+
+        .eg b { color: #ffcc00; }
+        .ly b { color: #ff8c1a; }
 
         #map {
             width: 100%;
-            height: 75vh;
+            height: 70vh;
+        }
+
+        .sites {
+            padding: 16px;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            justify-content: center;
+            background: #1c2b36;
+        }
+
+        .sites button {
+            background: #101820;
+            color: white;
+            border: 1px solid #3a4b58;
+            border-radius: 8px;
+            padding: 8px 12px;
+            font-size: 14px;
+            cursor: pointer;
+        }
+
+        .sites button:focus-visible {
+            outline: 2px solid #ffcc00;
+        }
+
+        .sites button.eg { border-color: #ffcc00; }
+        .sites button.ly { border-color: #ff8c1a; }
+
+        .popup h3 {
+            margin: 0 0 6px;
+        }
+
+        .popup p {
+            margin: 3px 0;
+        }
+
+        .popup .unverified {
+            color: #b00020;
+        }
+
+        footer {
+            padding: 14px 16px 24px;
+            text-align: center;
+            font-size: 13px;
+            color: #aab6c0;
         }
     </style>
 </head>
@@ -54,21 +124,80 @@
 
 <header>
     <h2>☀️ تشغيل العالم بالطاقة الشمسية</h2>
-    <p>تصور بصري للمساحة المطلوبة</p>
+    <p>توزيع الألواح على مواقع صحراوية في مصر وليبيا</p>
 </header>
 
 <div class="info">
-    مساحة الألواح الشمسية
+    مساحة الألواح الشمسية الإجمالية
     <div class="number">93,500 كم²</div>
-    الأبعاد التقريبية: 306 × 306 كم
+    <span class="unverified">الرقم غير موثق</span>
+    <div class="totals">
+        <div class="eg">مصر: <b id="egTotal"></b> كم² (<span id="egCount"></span> مواقع)</div>
+        <div class="ly">ليبيا: <b id="lyTotal"></b> كم² (<span id="lyCount"></span> مواقع)</div>
+    </div>
+    <div class="unverified" style="margin-top:8px">
+        المساحة موزعة بالتساوي على المواقع لغرض العرض فقط: النسب غير موثقة، والإحداثيات تقريبية.
+    </div>
 </div>
 
 <div id="map"></div>
 
+<div class="sites" id="sites"></div>
+
+<footer>
+    اختيار المواقع توضيحي ومش دراسة جدوى: لا يشمل شبكة الكهرباء ولا ملكية الأراضي ولا المحميات.
+    كل رقم غير مذكور عليه مصدر هو «غير موثق».
+</footer>
+
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 
 <script>
-    const map = L.map("map").setView([25, 25], 4);
+    // المساحة الإجمالية المطلوبة (كم²) - الرقم غير موثق
+    const TOTAL_AREA_KM2 = 93500;
+
+    // مواقع صحراوية تقريبية (مراكز الواحات والمناطق المفتوحة بعيداً عن وادي النيل
+    // والساحل). الإحداثيات تقريبية. كل موقع له وزن، والمساحة = الإجمالي × وزنه ÷
+    // مجموع الأوزان. الأوزان متساوية (1) لأن أي نسب تانية غير موثقة.
+    const SITES = [
+        // مصر
+        { country: "eg", name: "غرب أسوان",          lat: 24.4, lon: 32.2, weight: 1 },
+        { country: "eg", name: "توشكى",              lat: 22.6, lon: 30.9, weight: 1 },
+        { country: "eg", name: "شرق العوينات",       lat: 22.8, lon: 28.6, weight: 1 },
+        { country: "eg", name: "الخارجة",            lat: 25.3, lon: 30.0, weight: 1 },
+        { country: "eg", name: "الداخلة",            lat: 25.6, lon: 28.4, weight: 1 },
+        { country: "eg", name: "الفرافرة",           lat: 27.0, lon: 27.6, weight: 1 },
+        { country: "eg", name: "الواحات البحرية",    lat: 28.2, lon: 28.3, weight: 1 },
+        { country: "eg", name: "الصحراء الشرقية",    lat: 27.0, lon: 32.6, weight: 1 },
+        // ليبيا
+        { country: "ly", name: "أوباري",             lat: 26.6, lon: 12.8, weight: 1 },
+        { country: "ly", name: "سبها",               lat: 26.6, lon: 14.6, weight: 1 },
+        { country: "ly", name: "مرزق",               lat: 25.0, lon: 14.3, weight: 1 },
+        { country: "ly", name: "الحمادة الحمراء",    lat: 29.6, lon: 12.0, weight: 1 },
+        { country: "ly", name: "الجفرة",             lat: 29.0, lon: 16.0, weight: 1 },
+        { country: "ly", name: "جنوب سرت",           lat: 30.0, lon: 17.2, weight: 1 },
+        { country: "ly", name: "أوجلة وجالو",        lat: 28.8, lon: 21.8, weight: 1 },
+        { country: "ly", name: "الكفرة",             lat: 24.3, lon: 23.8, weight: 1 }
+    ];
+
+    const COUNTRY = {
+        eg: { label: "مصر",   color: "#ffcc00" },
+        ly: { label: "ليبيا", color: "#ff8c1a" }
+    };
+
+    const fmt = (n) => Math.round(n).toLocaleString("en-US");
+
+    // مربع بمساحة معينة حول نقطة: 1° عرض ≈ 111 كم، 1° طول ≈ 111.32 × cos(العرض) كم
+    function squareBounds(lat, lon, areaKm2) {
+        const side = Math.sqrt(areaKm2);
+        const dLat = side / 2 / 111;
+        const dLon = side / 2 / (111.32 * Math.cos(lat * Math.PI / 180));
+        return {
+            side,
+            bounds: [[lat - dLat, lon - dLon], [lat + dLat, lon + dLon]]
+        };
+    }
+
+    const map = L.map("map").setView([27, 22], 5);
 
     L.tileLayer(
         "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
@@ -78,27 +207,52 @@
         }
     ).addTo(map);
 
-    const bounds = [
-        [23.62, 23.48],
-        [26.38, 26.52]
-    ];
+    const weightSum = SITES.reduce((s, x) => s + x.weight, 0);
+    const totals = { eg: 0, ly: 0 };
+    const counts = { eg: 0, ly: 0 };
+    const sitesLayer = L.featureGroup();
+    const buttons = document.getElementById("sites");
 
-    const solar = L.rectangle(bounds, {
-        color: "#ffcc00",
-        weight: 3,
-        fillColor: "#ffcc00",
-        fillOpacity: 0.55
-    }).addTo(map);
+    SITES.forEach((site) => {
+        const area = TOTAL_AREA_KM2 * site.weight / weightSum;
+        const { side, bounds } = squareBounds(site.lat, site.lon, area);
+        const c = COUNTRY[site.country];
+        totals[site.country] += area;
+        counts[site.country] += 1;
 
-    solar.bindPopup(`
-        <h3>☀️ الطاقة الشمسية العالمية</h3>
-        <p>93,500 كم² من الألواح الشمسية</p>
-    `);
+        const rect = L.rectangle(bounds, {
+            color: c.color,
+            weight: 2,
+            fillColor: c.color,
+            fillOpacity: 0.55
+        }).addTo(sitesLayer);
 
-    solar.openPopup();
+        rect.bindPopup(`
+            <div class="popup">
+                <h3>☀️ ${site.name} - ${c.label}</h3>
+                <p>مساحة الألواح: ${fmt(area)} كم² (حوالي ${Math.round(side)} × ${Math.round(side)} كم)</p>
+                <p class="unverified">الحصة توضيحية (غير موثق) والموقع تقريبي</p>
+            </div>
+        `);
 
-    map.fitBounds(bounds);
+        const btn = document.createElement("button");
+        btn.className = site.country;
+        btn.textContent = `${site.name} - ${fmt(area)} كم²`;
+        btn.addEventListener("click", () => {
+            map.fitBounds(bounds, { maxZoom: 8 });
+            rect.openPopup();
+        });
+        buttons.appendChild(btn);
+    });
 
+    sitesLayer.addTo(map);
+
+    document.getElementById("egTotal").textContent = fmt(totals.eg);
+    document.getElementById("lyTotal").textContent = fmt(totals.ly);
+    document.getElementById("egCount").textContent = counts.eg;
+    document.getElementById("lyCount").textContent = counts.ly;
+
+    map.fitBounds(sitesLayer.getBounds(), { padding: [20, 20] });
 </script>
 
 </body>
